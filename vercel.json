@@ -4,12 +4,7 @@
   "routes": [
     {
       "src": "/api-search(.*)",
-      "dest": "/api-search/index.js",
-      "headers": {
-        "Access-Control-Allow-Origin": "https://info-finder-yg.netlify.app",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      }
+      "dest": "/api-search/index.js"
     }
   ]
 }
