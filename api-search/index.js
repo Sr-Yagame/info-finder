@@ -1,45 +1,44 @@
-export default async (req, res) => {
-  const ALLOWED_ORIGIN = "https://info-finder-yg.netlify.app";
-  const ALLOWED_METHODS = "POST, OPTIONS";
-  const ALLOWED_HEADERS = "Content-Type, Authorization";
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
 
-  res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
-  res.setHeader("Access-Control-Allow-Methods", ALLOWED_METHODS);
-  res.setHeader("Access-Control-Allow-Headers", ALLOWED_HEADERS);
+  const { cpf } = req.query;
+  const DB = process.env.DB;
+  const TK = process.env.TK;
 
-  if (req.method === "OPTIONS") return res.status(200).end();
+  if (!DB) {
+    return res.status(500).json({
+      STATUS: false,
+      erro: "db not found."
+    });
+  }
 
-  if (req.method !== "POST") {
-    res.setHeader("Allow", ["POST"]);
-    return res.status(405).json({ error: "Method not allowed" });
+  if (!cpf || cpf.length !== 11 || isNaN(cpf)) {
+    return res.status(400).json({
+      STATUS: false,
+      erro: "cpf is not valid ."
+    });
   }
 
   try {
-    const { cpf } = req.query;
-    const S1 = `${process.env.DB}${cpf}&token=${process.env.TK}`;
-
-    const response = await fetch(S1);
-    if (!response.ok) throw new Error("Unknown error");
-
+    
+    const response = await fetch(`${DB}${cpf}&token=${TK}`);
     const data = await response.json();
-    if (!data?.cpf) throw new Error("Invalid data");
 
-    return res.status(200).json({
-      status: true,
-      data: {
-        cpf: data.cpf || null,
-        nome: data.nome || null,
-        nascimento: data.nascimento || null,
-        sexo: data.sexo || null,
-        mae: data.mae || null
-      }
-    });
+    const rsp = {
+      STATUS: true,
+      CPF: data.cpf,
+      NOME: data.nome,
+      NASC: data.nascimento,
+      SEXO: data.sexo,
+      MÃE: data.mae
+    };
+
+    res.status(200).json(rsp);
 
   } catch (error) {
-    console.error("Erro:", error.message);
-    return res.status(500).json({ 
-      status: false,
-      error: "Query error"
+    res.status(500).json({
+      STATUS: false,
+      erro: ""
     });
   }
-};
+      }
