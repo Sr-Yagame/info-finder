@@ -3,7 +3,7 @@ export default async (req, res) => {
   const ALLOWED_METHODS = "POST, OPTIONS";
   const ALLOWED_HEADERS = "Content-Type, Authorization";
 
-  if (req.headers.origin !== ALLOWED_ORIGIN) {
+  if (req.headers.origin = ALLOWED_ORIGIN) {
     return res.status(403).json({ error: "Access denied" });
   }
 
