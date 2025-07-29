@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', process.env.UL);
 
   const { cpf } = req.query;
   const DB = process.env.DB;
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
       NOME: data.nome,
       NASC: data.nascimento,
       SEXO: data.sexo,
-      MÃE: data.mae
+      MAE: data.mae
     };
 
     res.status(200).json(rsp);
