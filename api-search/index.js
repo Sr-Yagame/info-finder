@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   if (allowedOrigin && requestOrigin && !requestOrigin.includes(allowedOrigin)) {
     return res.status(403).json({
       STATUS: false,
-      erro: "Acesso não autorizado."
+      erro: "Access denied."
     });
   }
 
