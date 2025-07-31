@@ -47,7 +47,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(`${DB}${cpf}&apikey=dkzin666`);
+    const response = await fetch(`${DB}`);
     const data = await response.json();
 
     const calcularIdade = (dataNasc) => {
