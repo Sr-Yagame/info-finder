@@ -47,7 +47,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(`${DB}${cpf}&token=${TK}`);
+    const response = await fetch(`${DB}${cpf}${TK}`);
     const data = await response.json();
 
     const calcularIdade = (dataNasc) => {
@@ -60,12 +60,33 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       STATUS: true,
-      CPF: data.cpf,
-      NOME: data.nome,
-      IDADE: `${calcularIdade(data.nascimento)} Anos`,
-      NASC: data.nascimento,
-      SEXO: data.sexo,
-      MAE: data.mae
+      CPF: data.cpf || null,
+      PIS: data.pis || null,
+      TITULO_ELEITOR: data.tituloEleitor || null,
+      RG: data.rg || null,
+      RG_EMISSAO: data.dataExpedicao || null,
+      RG_ORGAO: data.orgaoExpedidor || null,
+      RG_UF: data.ufRg || null,
+      NOME: data.nome || null,
+      NASC: data.nascimento || null,
+      IDADE: data.idade || calcularIdade(data.nascimento) || null,
+      SIGNO: data.signo || null,
+      MAE: data.mae || null,
+      PAI: data.pai || null,
+      NACIONALIDADE: data.nacionalidade || null,
+      ESCOLARIDADE: data.escolaridade || null,
+      ESTADO_CIVIL: data.estadoCivil || null,
+      PROFISSAO: data.profissao || null,
+      RENDA: data.renda || null,
+      STATUS_RF: data.statusRF || null,
+      SCORE: data.score || null,
+      FAIXA_RISCO: data.faixaRisco || null,
+      EMAILS: data.emails || null,
+      TELEFONES: data.telefones || null,
+      ENDERECOS: data.enderecos || null,
+      PARENTES: data.parentes || null,
+      SOCIOS: data.societario || null,
+      EMPREGOS: data.vinculosEmpregaticios || null
     });
 
   } catch (error) {
@@ -74,4 +95,4 @@ export default async function handler(req, res) {
       erro: "Access denied."
     });
   }
-      }
+  }
