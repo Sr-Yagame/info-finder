@@ -84,13 +84,13 @@ export default async function handler(req, res) {
 
       // 7. Armazenar em cache
       await set(cacheRef, {
-        data: dados.resultado,
+        data: dados,
         timestamp: Date.now()
       });
 
       // 8. Resposta de sucesso
       return res.status(200).json({
-        ...dados.resultado,
+        ...dados,
         cached: false,
         requests_remaining: counterSnap.val()
       });
