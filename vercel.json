@@ -1,12 +1,18 @@
 {
   "version": 2,
-  "builds": [{
-    "src": "api/*.js",
-    "use": "@vercel/node"
-  }],
-  "routes": [{
-    "src": "/teste",
-    "dest": "/api/teste.js",
-    "methods": ["GET"]
-  }]
+  "builds": [
+    {
+      "src": "api/endpoints/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/nome",
+      "dest": "/api/endpoints/nome.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
