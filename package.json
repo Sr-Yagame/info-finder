@@ -1,5 +1,4 @@
 {
-  "name": "api-gateway",
   "type": "module",
   "dependencies": {
     "node-fetch": "^3.0.0"
