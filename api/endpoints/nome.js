@@ -1,9 +1,10 @@
-// Importação usando ESM (necessário para node-fetch v3+)
 import fetch from 'node-fetch';
-import { ref, get, runTransaction } from 'firebase/database';
-import { db } from '../utils/firebase.js'; // Note a extensão .js explícita
+import { ref, get, runTransaction, set } from 'firebase/database';
+import { db } from '../utils/firebase.js';
 
-// Configuração de debug
+// Configurações
+const EXTERNAL_API_TIMEOUT = 25000; // 25 segundos
+const CACHE_EXPIRATION = 3600 * 1000; // 1 hora em milissegundos
 const DEBUG = true;
 
 export default async function handler(req, res) {
@@ -38,8 +39,21 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'Chave API inválida' });
     }
 
-    // 4. Atualização do contador
-    const endpoint = 'nome'; // Nome fixo do endpoint
+    // 4. Verificação de cache
+    const cacheRef = ref(db, `cache/${encodeURIComponent(nome)}`);
+    const cachedData = await get(cacheRef);
+    
+    if (cachedData.exists() && (Date.now() - cachedData.val().timestamp < CACHE_EXPIRATION)) {
+      if (DEBUG) console.log('📦 Retornando dados do cache');
+      return res.status(200).json({
+        ...cachedData.val().data,
+        cached: true,
+        requests_remaining: userData.contadores?.nome || 0
+      });
+    }
+
+    // 5. Atualização do contador
+    const endpoint = 'nome';
     const counterPath = `usuarios/${userId}/contadores/${endpoint}`;
     
     if (DEBUG) console.log('🧮 Atualizando contador...');
@@ -49,29 +63,44 @@ export default async function handler(req, res) {
       return newValue;
     });
 
-    // 5. Consulta à API externa
-    if (DEBUG) console.log('🌐 Chamando API externa...');
-    if (!process.env.DDS || !process.env.TKS) {
-      throw new Error('Variáveis DDS ou TKS não configuradas');
-    }
+    // 6. Consulta à API externa com timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), EXTERNAL_API_TIMEOUT);
 
     const url = `${process.env.DDS}${encodeURIComponent(nome)}&apikey=${process.env.TKS}`;
     if (DEBUG) console.log('🔗 URL (chave ocultada):', url.replace(process.env.TKS, '***'));
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`API externa retornou status ${response.status}`);
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal
+      }).finally(() => clearTimeout(timeout));
+
+      if (!response.ok) {
+        throw new Error(`API externa retornou status ${response.status}`);
+      }
+
+      const dados = await response.json();
+      if (DEBUG) console.log('📦 Dados recebidos:', Object.keys(dados));
+
+      // 7. Armazenar em cache
+      await set(cacheRef, {
+        data: dados,
+        timestamp: Date.now()
+      });
+
+      // 8. Resposta de sucesso
+      return res.status(200).json({
+        ...dados,
+        cached: false,
+        requests_remaining: counterSnap.val()
+      });
+
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        throw new Error('Timeout: A API externa demorou muito para responder');
+      }
+      throw error;
     }
-
-    const dados = await response.json();
-    if (DEBUG) console.log('📦 Dados recebidos:', Object.keys(dados));
-
-    // 6. Resposta de sucesso
-    return res.status(200).json({
-      success: true,
-      data: dados,
-      requests_remaining: counterSnap.val()
-    });
 
   } catch (error) {
     console.error('💥 ERRO:', error.message);
@@ -81,18 +110,29 @@ export default async function handler(req, res) {
       return res.status(429).json({ error: 'Limite de requests atingido' });
     }
 
+    // Timeout personalizado
+    if (error.message.includes('Timeout')) {
+      return res.status(504).json({ 
+        error: 'Timeout',
+        message: error.message
+      });
+    }
+
     // Erros de configuração
     if (error.message.includes('Variáveis')) {
       return res.status(500).json({ 
-        error: 'Erro de configuração do servidor',
-        solution: 'Verifique as variáveis DDS e TKS'
+        error: 'Erro de configuração',
+        details: 'Verifique as variáveis DDS e TKS'
       });
     }
 
     // Erro genérico
     return res.status(500).json({
       error: 'Erro interno',
-      ...(DEBUG && { details: error.message })
+      ...(DEBUG && { 
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      })
     });
   }
-                                   }
+        }
