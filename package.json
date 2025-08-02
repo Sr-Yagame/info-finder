@@ -1,6 +1,13 @@
 {
-  "type": "module",
+  "name": "yg-api-search",
+  "version": "1.0.0",
   "scripts": {
-    "start": "node api-search/index.js"
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "firebase": "^9.0.0",
+    "node-fetch": "^3.0.0",
+    "@vercel/node": "^1.12.1"
   }
 }
