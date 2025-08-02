@@ -3,7 +3,7 @@ import { ref, get, runTransaction } from 'firebase/database';
 import { db } from '../utils/firebase';
 
 // Configuração de debug (defina como false em produção)
-const DEBUG = true;
+const DEBUG = false;
 
 // Middleware de autenticação integrado diretamente
 async function authenticateRequest(req, res) {
