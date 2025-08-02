@@ -4,14 +4,9 @@
     "src": "api/*.js",
     "use": "@vercel/node"
   }],
-  "routes": [
-    {
-      "src": "/teste",
-      "dest": "/api/teste.js"
-    },
-    {
-      "src": "/api/teste",
-      "dest": "/api/teste.js"
-    }
-  ]
+  "routes": [{
+    "src": "/teste",
+    "dest": "/api/teste.js",
+    "methods": ["GET"]
+  }]
 }
