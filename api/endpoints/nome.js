@@ -45,8 +45,10 @@ export default async function handler(req, res) {
     
     if (cachedData.exists() && (Date.now() - cachedData.val().timestamp < CACHE_EXPIRATION)) {
       if (DEBUG) console.log('📦 Retornando dados do cache');
+      const { data } = cachedData.val();
       return res.status(200).json({
-        ...cachedData.val().data,
+        status: true,
+        resultado: data.resultado,
         cached: true,
         requests_remaining: userData.contadores?.nome || 0
       });
@@ -82,15 +84,18 @@ export default async function handler(req, res) {
       const dados = await response.json();
       if (DEBUG) console.log('📦 Dados recebidos:', Object.keys(dados));
 
-      // 7. Armazenar em cache
+      // 7. Armazenar em cache (apenas os campos necessários)
       await set(cacheRef, {
-        data: dados,
+        data: {
+          resultado: dados.resultado
+        },
         timestamp: Date.now()
       });
 
-      // 8. Resposta de sucesso
+      // 8. Resposta de sucesso (apenas campos solicitados)
       return res.status(200).json({
-        ...dados,
+        status: true,
+        resultado: dados.resultado,
         cached: false,
         requests_remaining: counterSnap.val()
       });
@@ -105,12 +110,10 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('💥 ERRO:', error.message);
     
-    // Tratamento específico para limites
     if (error.message === 'LIMITE_ATINGIDO') {
       return res.status(429).json({ error: 'Limite de requests atingido' });
     }
 
-    // Timeout personalizado
     if (error.message.includes('Timeout')) {
       return res.status(504).json({ 
         error: 'Timeout',
@@ -118,7 +121,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Erros de configuração
     if (error.message.includes('Variáveis')) {
       return res.status(500).json({ 
         error: 'Erro de configuração',
@@ -126,7 +128,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Erro genérico
     return res.status(500).json({
       error: 'Erro interno',
       ...(DEBUG && { 
@@ -135,4 +136,4 @@ export default async function handler(req, res) {
       })
     });
   }
-        }
+                             }
