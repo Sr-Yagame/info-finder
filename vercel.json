@@ -1,19 +1,11 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/endpoints/*.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/nome",
-      "dest": "/api/endpoints/nome.js"
-    },
-    {
-      "src": "/api/nome",
-      "dest": "/api/endpoints/nome.js"
-    }
-  ]
+  "builds": [{
+    "src": "api/endpoints/*.js",
+    "use": "@vercel/node"
+  }],
+  "routes": [{
+    "src": "/(.*)",
+    "dest": "/api/endpoints/$1.js"
+  }]
 }
