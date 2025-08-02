@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { apiKeyAuth } from '../../middleware/auth';
+import { apiKeyAuth } from '../middleware/auth';
 
 // Configuração de debug (remova depois)
 const DEBUG = true;
