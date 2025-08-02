@@ -1,81 +1,49 @@
 import fetch from 'node-fetch';
 import { apiKeyAuth } from '../../middleware/auth';
 
-async function consultaNOME(nome) {
+// Configuração de debug (remova depois)
+const DEBUG = true;
+
+export default async (req, res) => {
+  if (DEBUG) console.log('Requisição recebida:', req.query);
+
   try {
-    if (!process.env.DDS || !process.env.TKS) {
-      throw new Error('NULL');
-    }
-
-    const url = `${process.env.DDS}${encodeURIComponent(nome)}&apikey=${process.env.TKS}`;
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`Erro na API externa: ${response.status}`);
-    }
-
-    return await response.json();
-    
-  } catch (error) {
-    console.error('NULL');
-    throw error;
-  }
-}
-
-const handler = async (req, res) => {
-  try {
+    // Verificação do método
     if (req.method !== 'GET') {
       return res.status(405).json({ error: 'Método não permitido' });
     }
 
-    const { nome, key } = req.query;
+    // Autenticação
+    await new Promise((resolve) => {
+      apiKeyAuth(req, res, resolve);
+    });
+
+    if (res.headersSent) return; // Se o middleware já respondeu
+
+    const { nome } = req.query;
     
-    if (!nome || !key) {
-      return res.status(400).json({ 
-        error: 'NULL'
-      });
+    if (!nome) {
+      return res.status(400).json({ error: 'Parâmetro "nome" obrigatório' });
     }
 
-    const dados = await consultaNOME(nome);
-    
-    if (dados.erro || dados.error) {
-      return res.status(404).json({ 
-        error: 'Dados não encontrados'
-      });
-    }
+    if (DEBUG) console.log('Variáveis DDS:', process.env.DDS, 'TKS:', !!process.env.TKS);
 
-    res.status(200).json({
-      success: true,
-      data: dados,
-      requests_remaining: req.userContext?.requestsRemaining || 'N/A'
+    const response = await fetch(`${process.env.DDS}${encodeURIComponent(nome)}&apikey=${process.env.TKS}`);
+    const data = await response.json();
+
+    if (DEBUG) console.log('Resposta da API:', data);
+
+    res.json({
+      ...data,
+      requests_remaining: req.userContext?.requestsRemaining || 0
     });
 
   } catch (error) {
-    console.error('Erro no handler:');
+    if (DEBUG) console.error('Erro completo:', error);
     
-    if (error.message.includes('Erro no handler:')) {
-      return res.status(500).json({ 
-        error: 'NULL'
-      });
-    }
-    
-    if (error.message.includes('API externa')) {
-      return res.status(502).json({ 
-        error: 'NULL'
-      });
-    }
-
-    res.status(500).json({ 
-      error: 'Erro interno no servidor',
-      request_id: req.headers['x-vercel-id'] 
+    res.status(500).json({
+      error: 'Erro interno',
+      details: DEBUG ? error.message : 'Contate o administrador'
     });
   }
 };
-
-export default function withMiddleware(req, res) {
-  return new Promise((resolve) => {
-    apiKeyAuth(req, res, () => {
-      handler(req, res).then(resolve);
-    });
-  });
-  }
