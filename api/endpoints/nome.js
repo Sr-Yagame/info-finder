@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
   const allowedOrigin = process.env.UL;
   if (!allowedOrigin) {
-    return res.status(500).json({ status: false });
+    return res.status(500).json({ status: 'UL' });
   }
 
   const requestOrigin = req.headers.origin || req.headers.referer;
