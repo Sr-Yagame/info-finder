@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
   const requestOrigin = req.headers.origin || req.headers.referer;
   if (!requestOrigin?.includes(allowedOrigin)) {
-    return res.status(403).json({ status: false });
+    return res.status(403).json({ status: 'UL' });
   }
 
   try {
