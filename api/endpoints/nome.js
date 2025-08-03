@@ -11,12 +11,12 @@ export default async function handler(req, res) {
 
   const allowedOrigin = process.env.UL;
   if (!allowedOrigin) {
-    return res.status(500).json({ status: 'UL' });
+    return res.status(500).json({ status: false });
   }
 
   const requestOrigin = req.headers.origin || req.headers.referer;
   if (!requestOrigin?.includes(allowedOrigin)) {
-    return res.status(403).json({ status: 'UL' });
+    return res.status(403).json({ status: false });
   }
 
   try {
