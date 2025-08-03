@@ -7,7 +7,7 @@ const CACHE_EXPIRATION = 3600 * 1000;
 const DEBUG = true;
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', process.env.UL || '*');
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (DEBUG) console.log('\n--- NOVA REQUISIÇÃO ---', req.query);
