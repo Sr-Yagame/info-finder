@@ -61,7 +61,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const endpoint = 'cpf';
+    const endpoint = 'cpf2';
     const counterPath = `usuarios/${userId}/contadores/${endpoint}`;
     
     const { snapshot: counterSnap } = await runTransaction(ref(db, counterPath), (current) => {
